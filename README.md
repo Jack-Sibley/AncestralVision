@@ -1,3 +1,2 @@
-# New Generation Process
-1. Find all lines which are Section headers and store their location.
-2. 
+# Ancestral Vision
+Repo to staticly generate ancestral.vision based on the latest MTG comprehensive rules.
