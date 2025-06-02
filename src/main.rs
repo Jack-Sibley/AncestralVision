@@ -1,75 +1,33 @@
-use std::fs;
-use std::io::{ErrorKind, Write};
+use cr_html::Section;
+use cr_html::html_gen::{ToHtml, ToKebabCase};
 use regex::Regex;
-use rayon::prelude::*;
+use std::fs;
+use std::fs::{create_dir_all, File};
+use std::io::{Write, Result};
+use regex_split::RegexSplit;
 
-fn main() {
-    let untrimmed_contents = fs::read_to_string("in/mcr_slice.txt")
-        .expect("Should have been able to read the file");
+
+fn main() -> Result<()>{
+    let untrimmed_contents =
+        fs::read_to_string("in/mcr_slice.txt")?;
     let contents = untrimmed_contents.trim_start_matches('\u{FEFF}');
+    let section_re = Regex::new(r"\n(\d{1,2}\.\s.+)").unwrap();
+    let sections: Vec<&str> = section_re.split_inclusive_left(contents).map(|s| s.trim()).collect();
 
-    let lines: Vec<&str> = contents
-        .lines()
-        .collect();
+    let template = fs::read_to_string("in/template.html")?;
 
-    let html_lines = lines
-        .par_iter()
-        .filter_map(|line| {
-            match line {
-                &"" => None,
-                _ => Some(handle_cr_line(line)),
-            }
-        })
-    .collect::<Vec<String>>();
+    let all_rules = Section::from_sections_text(sections);
+    for section in all_rules {
+        let section_slug = section.title.to_kebab_case();
+        for subsection in section.subsections {
+            let subsection_slug = subsection.title.to_kebab_case();
 
-    match fs::remove_file("out.html") {
-        Err(error) => match error.kind() {
-            ErrorKind::NotFound => (),
-            _ => panic!("Should have been able to delete the file")
-        },
-        Ok(_) => ()
+            create_dir_all(format!("dist/{}/{}", section_slug, subsection_slug))?;
+            let mut file = File::create(format!("dist/{}/{}/index.html", section_slug, subsection_slug))?;
+
+            let out_html = template.replace(r"<!--CONTENTS-->", &subsection.to_html());
+            file.write_all(&out_html.into_bytes())?;
+        }
     }
-    let mut out_file = fs::File::create("out.html").unwrap();
-
-    let template = fs::read_to_string("in/template.html").unwrap();
-    let html = html_lines.join("\n");
-
-    out_file.write_all(template.replace("<!--CONTENTS-->", html.as_str()).as_bytes()).unwrap();
-}
-
-const MARKUP_RULES: [(&str, &str); 4] = [
-    (
-        // language=RegExp
-        r"(^\d{1,2}\.\s.+)",
-        // language=HTML
-        "<h1>$0</h1>"
-    ),
-    (
-        // language=RegExp
-        r"(^\d{3}\.\s.+)",
-        // language=HTML
-        "<h2>$0</h2>"
-    ),
-    (
-        // language=RegExp
-        r"(^\d{3}\.\d\S+)(\s.+)",
-        // language=HTML
-        "<p><strong>$1</strong>$2</p>"
-    ),
-    (
-        // language=RegExp
-        r"(^Example:)(\s.+)",
-        // language=HTML
-        r"<article><header><strong>Example</strong></header>$2</article>"
-    )
-
-];
-
-fn handle_cr_line(s: &&str) -> String {
-    let mut line: String = s.to_string();
-    for rule in MARKUP_RULES {
-        line = Regex::new(rule.0).unwrap()
-            .replace_all(&line, rule.1).to_string();
-    }
-    line
+    Ok(())
 }
