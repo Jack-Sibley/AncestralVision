@@ -1,3 +1,4 @@
+use maud::{html, Markup, Render};
 use crate::models::Rule;
 use regex::Regex;
 
@@ -20,4 +21,15 @@ impl Subsection {
             rules: Rule::vec_from_text(subsection_captures[3].trim()),
         }
     }
+}
+
+impl Render for Subsection {
+	fn render(&self) -> Markup {
+		html! {
+            h1 {(self.number)". "(self.title) }
+            @for rule in &self.rules {
+                (rule)
+            }
+        }
+	}
 }
