@@ -1,33 +1,31 @@
-use cr_html::Section;
-use cr_html::html_gen::{ToHtml, ToKebabCase};
-use regex::Regex;
+use cr_html::models::Book;
+use cr_html::template::page;
 use std::fs;
-use std::fs::{create_dir_all, File};
-use std::io::{Write, Result};
-use regex_split::RegexSplit;
+use std::io::{Result, Write};
 
-
-fn main() -> Result<()>{
-    let untrimmed_contents =
-        fs::read_to_string("in/mcr_slice.txt")?;
+fn main() -> Result<()> {
+    let untrimmed_contents = fs::read_to_string("in/mcr_slice.txt")?;
     let contents = untrimmed_contents.trim_start_matches('\u{FEFF}');
-    let section_re = Regex::new(r"\n(\d{1,2}\.\s.+)").unwrap();
-    let sections: Vec<&str> = section_re.split_inclusive_left(contents).map(|s| s.trim()).collect();
+    let book = Book::from_text(contents);
 
-    let template = fs::read_to_string("in/template.html")?;
-
-    let all_rules = Section::from_sections_text(sections);
-    for section in all_rules {
-        let section_slug = section.title.to_kebab_case();
+    for section in book.sections {
+        let section_slug = to_kebab_case(&section.title);
         for subsection in section.subsections {
-            let subsection_slug = subsection.title.to_kebab_case();
+            let subsection_slug = to_kebab_case(&subsection.title);
+            fs::create_dir_all(format!("dist/{section_slug}/{subsection_slug}"))?;
+            let mut file =
+                fs::File::create(format!("dist/{section_slug}/{subsection_slug}/index.html"))?;
 
-            create_dir_all(format!("dist/{}/{}", section_slug, subsection_slug))?;
-            let mut file = File::create(format!("dist/{}/{}/index.html", section_slug, subsection_slug))?;
-
-            let out_html = template.replace(r"<!--CONTENTS-->", &subsection.to_html());
+            let out_html = page(&subsection).into_string();
             file.write_all(&out_html.into_bytes())?;
         }
     }
     Ok(())
+}
+
+fn to_kebab_case(str: &str) -> String {
+    str.to_lowercase()
+        .replace(" ", "-")
+        .replace(",", "")
+        .replace("/", "")
 }
