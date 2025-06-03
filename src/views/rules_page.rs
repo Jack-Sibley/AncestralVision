@@ -1,7 +1,13 @@
-use maud::{DOCTYPE, Markup, Render, html};
+use maud::{html, Markup, Render, DOCTYPE};
+use crate::models::Subsection;
 
-pub fn page(contents: &impl Render) -> Markup {
-    html! {
+pub struct RulesPage<'a> {
+	pub subsection: &'a Subsection
+}
+
+impl<'a> Render for RulesPage<'a> {
+	fn render(&self) -> Markup {
+		html! {
         (DOCTYPE);
         html lang="en" {
             head {
@@ -13,9 +19,10 @@ pub fn page(contents: &impl Render) -> Markup {
             }
             body {
                 main .container {
-                    (contents)
+                    (self.subsection)
                 }
             }
         }
     }
+	}
 }
