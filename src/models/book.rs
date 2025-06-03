@@ -1,7 +1,10 @@
-use crate::models::Section;
+use std::io::Error;
+use std::path::Path;
+use crate::models::{Routable, Section};
 use rayon::prelude::*;
 use regex::Regex;
 use regex_split::RegexSplit;
+use crate::views::{IntoFile, RulesPage};
 
 #[derive(Debug)]
 pub struct Book {
@@ -22,5 +25,16 @@ impl Book {
                 .map(|(index, text)| Section::from_text((index as u32) + 1, text))
                 .collect(),
         }
+    }
+}
+
+impl Routable for Book {
+    fn generate_pages(&self, dir_path: &Path) -> Result<(), Error> {
+        for (i, section) in self.sections.iter().enumerate() {
+            for (j, _subsection) in section.subsections.iter().enumerate() {
+                RulesPage::new(&self, i, j).to_file(dir_path)?
+            }
+        }
+        Ok(())
     }
 }

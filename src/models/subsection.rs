@@ -1,5 +1,5 @@
-use maud::{html, Markup, Render};
 use crate::models::Rule;
+use maud::{Markup, Render, html};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -24,12 +24,12 @@ impl Subsection {
 }
 
 impl Render for Subsection {
-	fn render(&self) -> Markup {
-		html! {
-            h1 {(self.number)". "(self.title) }
+    fn render(&self) -> Markup {
+        html! {
+            h2 {(self.number)". "(self.title) }
             @for rule in &self.rules {
                 (rule)
             }
         }
-	}
+    }
 }

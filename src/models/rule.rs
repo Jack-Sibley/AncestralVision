@@ -1,4 +1,4 @@
-use maud::{html, Markup, Render};
+use maud::{Markup, Render, html};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -32,7 +32,7 @@ thread_local! {
 }
 impl Rule {
     pub fn vec_from_text(text: &str) -> Vec<Rule> {
-        let mut stack= Vec::new();
+        let mut stack = Vec::new();
         for line in text.lines() {
             if let Some(caps) = IS_BASE_RULE.with(|re| re.captures(line)) {
                 stack.push(Rule {
@@ -59,13 +59,13 @@ impl Rule {
                 }
             }
         }
-	    stack
+        stack
     }
 }
 
 impl Render for ChildRule {
-	fn render(&self) -> Markup {
-		html! {
+    fn render(&self) -> Markup {
+        html! {
             p { strong { (self.code) } (self.contents) }
             @for example in &self.examples {
                 article {
@@ -74,12 +74,12 @@ impl Render for ChildRule {
                 }
             }
         }
-	}
+    }
 }
 
 impl Render for Rule {
-	fn render(&self) -> Markup {
-		html! {
+    fn render(&self) -> Markup {
+        html! {
             (self.rule)
             @if !self.subrules.is_empty() {
                 ul {
@@ -89,5 +89,5 @@ impl Render for Rule {
                 }
             }
         }
-	}
+    }
 }
