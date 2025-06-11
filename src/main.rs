@@ -1,7 +1,9 @@
-use std::error::Error;
+use std::{
+    error::Error,
+    fs,
+    path::Path
+};
 use cr_parse::models::Rulebook;
-use std::fs;
-use std::path::Path;
 use cr_html::views::PageGenerator;
 
 fn main() -> Result<(), Box<dyn Error>> {
