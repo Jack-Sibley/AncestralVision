@@ -14,7 +14,7 @@ thread_local! {
     static SPLIT_SUBSECTION: Regex = Regex::new(r"\n\d{3}\.\s.+").unwrap();
 }
 impl Section {
-    pub fn from_text(section_no: u32, text: &str) -> Section {
+    pub fn new(section_no: u32, text: &str) -> Section {
         let section_captures = CAPTURE_SECTION.with(|regex| regex.captures(text).unwrap());
         let subsection_texts: Vec<String> = SPLIT_SUBSECTION.with(|re| {
             re.split_inclusive_left(section_captures[2].trim())
@@ -25,10 +25,7 @@ impl Section {
             number: section_no,
             title: section_captures[1].to_string(),
             //subsections: Subsection::from_section_text(section_captures[2].trim()),
-            subsections: subsection_texts
-                .par_iter()
-                .map(Subsection::from_text)
-                .collect(),
+            subsections: subsection_texts.par_iter().map(Subsection::new).collect(),
         }
     }
 }

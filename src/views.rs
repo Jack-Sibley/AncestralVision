@@ -1,5 +1,5 @@
-use std::fs;
 use maud::Render;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
@@ -25,4 +25,8 @@ pub trait IntoFile: View {
         let mut file = File::create(path)?;
         <Self as View>::to_file(self, &mut file)
     }
+}
+
+pub trait PageGenerator {
+    fn generate_web_pages(&self, dir_path: &Path) -> Result<(), std::io::Error>;
 }

@@ -1,5 +1,4 @@
 use crate::models::Rule;
-use maud::{Markup, Render, html};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -13,23 +12,12 @@ thread_local! {
     static CAPTURE_SUBSECTION: Regex = Regex::new(r"^(\d{3})\.\s(.++)([\s\S]+)").unwrap();
 }
 impl Subsection {
-    pub fn from_text(text: &String) -> Subsection {
+    pub fn new(text: &String) -> Subsection {
         let subsection_captures = CAPTURE_SUBSECTION.with(|regex| regex.captures(text).unwrap());
         Subsection {
             number: subsection_captures[1].parse().unwrap(),
             title: subsection_captures[2].to_string(),
             rules: Rule::vec_from_text(subsection_captures[3].trim()),
-        }
-    }
-}
-
-impl Render for Subsection {
-    fn render(&self) -> Markup {
-        html! {
-            h2 {(self.number)". "(self.title) }
-            @for rule in &self.rules {
-                (rule)
-            }
         }
     }
 }

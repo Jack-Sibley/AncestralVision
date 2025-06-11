@@ -1,7 +1,11 @@
-use crate::models::{Book, Section, Subsection};
+use std::io::Error;
+use std::path::Path;
+use cr_parse::models::{Rulebook, Section, Subsection};
+use cr_maud::RuleComponent;
+use crate::views::{IntoFile, PageGenerator};
 use maud::{DOCTYPE, Markup, Render, html};
-use crate::views::IntoFile;
-use crate::helpers::*;
+use crate::components::Sidebar;
+use crate::to_kebab_case;
 
 pub struct RulesPage<'a> {
     section: &'a Section,
@@ -9,7 +13,7 @@ pub struct RulesPage<'a> {
 }
 
 impl<'a> RulesPage<'a> {
-    pub fn new(book: &Book, section_index: usize, subsection_index: usize) -> RulesPage {
+    pub fn new(book: &Rulebook, section_index: usize, subsection_index: usize) -> RulesPage {
         let section = &book.sections[section_index];
         let subsection = &section.subsections[subsection_index];
         RulesPage {
@@ -21,6 +25,7 @@ impl<'a> RulesPage<'a> {
 
 impl<'a> Render for RulesPage<'a> {
     fn render(&self) -> Markup {
+
         html! {
             (DOCTYPE);
             html lang="en" {
@@ -33,8 +38,11 @@ impl<'a> Render for RulesPage<'a> {
                 }
                 body {
                     main .container {
-                        h1 { "MTG Rules: "(&self.section.title)" - "(&self.subsection.title)}
-                        (self.subsection)
+                        (Sidebar {})
+                        section {
+                            h1 { "MTG Rules: "(self.section.title)" - "(self.subsection.title)}
+                            (RuleComponent(self.subsection))
+                        }
                     }
                 }
             }
@@ -44,6 +52,21 @@ impl<'a> Render for RulesPage<'a> {
 
 impl<'a> IntoFile for RulesPage<'a> {
     fn get_file_path(&self) -> String {
-        format!("{}/{}/index.html", to_kebab_case(&self.section.title), to_kebab_case(&self.subsection.title))
+        format!(
+            "{}/{}/index.html",
+            to_kebab_case(&self.section.title),
+            to_kebab_case(&self.subsection.title)
+        )
+    }
+}
+
+impl PageGenerator for Rulebook {
+    fn generate_web_pages(&self, dir_path: &Path) -> Result<(), Error> {
+        for (i, section) in self.sections.iter().enumerate() {
+            for (j, _subsection) in section.subsections.iter().enumerate() {
+                RulesPage::new(&self, i, j).to_file(dir_path)?
+            }
+        }
+        Ok(())
     }
 }

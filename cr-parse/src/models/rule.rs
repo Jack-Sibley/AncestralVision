@@ -1,4 +1,3 @@
-use maud::{Markup, Render, html};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -60,34 +59,5 @@ impl Rule {
             }
         }
         stack
-    }
-}
-
-impl Render for ChildRule {
-    fn render(&self) -> Markup {
-        html! {
-            p { strong { (self.code) } (self.contents) }
-            @for example in &self.examples {
-                article {
-                    header {  strong { "Example" } }
-                    (example)
-                }
-            }
-        }
-    }
-}
-
-impl Render for Rule {
-    fn render(&self) -> Markup {
-        html! {
-            (self.rule)
-            @if !self.subrules.is_empty() {
-                ul {
-                    @for subrule in &self.subrules {
-                        li { (subrule) }
-                    }
-                }
-            }
-        }
     }
 }
