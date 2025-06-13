@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let contents = raw_contents.trim_start_matches('\u{FEFF}');
     let out_dir = Path::new("dist");
     
-    Rulebook::new(contents).generate_web_pages(out_dir)?;
+    Rulebook::new(contents)?.generate_web_pages(out_dir)?;
     
     Ok(())
 }
