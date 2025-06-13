@@ -7,3 +7,11 @@ edition = "2024"
 cr-parse = { path = "cr-parse" }
 cr-maud = { path = "cr-maud" }
 maud = "0.27.0"
+turf = "0.10.1"
+
+[package.metadata.turf]
+minify = true
+
+[package.metadata.turf.class_names]
+template = ""
+excludes = [".*"]

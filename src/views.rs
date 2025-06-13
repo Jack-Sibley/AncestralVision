@@ -4,9 +4,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-mod rules_page;
-
-pub use rules_page::RulesPage;
+pub(crate) mod rules_page;
 
 pub trait View {
     fn to_file(&self, file: &mut File) -> Result<(), std::io::Error>;
